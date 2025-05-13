@@ -1,0 +1,22 @@
+services:
+  airflow:
+    build: .
+    container_name: airflow-dengue
+    restart: always
+    environment:
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: False
+      _AIRFLOW_WWW_USER_USERNAME: airflow
+      _AIRFLOW_WWW_USER_PASSWORD: airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./output:/opt/airflow/output
+    ports:
+      - "8080:8080"
+    command: ["airflow", "standalone"]
+#     networks:
+#       - airflow-net
+
+# networks:
+#   airflow-net:
+#     driver: bridge
