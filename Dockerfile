@@ -1,4 +1,4 @@
-FROM apache/airflow:3.0.1
+FROM apache/airflow:2.7.3
 
 WORKDIR /opt/airflow
 
