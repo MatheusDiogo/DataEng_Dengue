@@ -24,11 +24,8 @@ def extrair_dados():
                 csv_name = zip_file.namelist()[0]
                 with zip_file.open(csv_name) as csv_file:
                     # Algumas colunas têm tipos mistos, então vamos forçar o tipo delas para string
-                    colunas_com_tipos_mistos = [21,22,44,45,46,50,52,54,56,62,74,85,101]
-                    dtype_dict = {col: 'str' for col in colunas_com_tipos_mistos}
-
                     # Lê o CSV em pedaços para evitar problemas de memória
-                    chunks = pd.read_csv(csv_file, sep=',', encoding='latin1', dtype=dtype_dict, chunksize=50000)
+                    chunks = pd.read_csv(csv_file, sep=',', encoding='latin1', dtype=str, chunksize=50000)
                     
                     # Filtrando somente os dados de Pernambuco (PE) - Notificações, residência do paciênte e local de provavel infecção
                     df_pe = pd.concat([
@@ -95,6 +92,11 @@ def transformar_dados():
     # Vamos transformar em Bool para facilitar calculos e outras transformações do time de análise
     for col in colunas_sn:
         cinan_df[col] = cinan_df[col].map({'1': True, '2': False, '9': np.nan}).astype('boolean') # Nesssa conversão Nan continua Nan
+
+    # Substitui a tabela se já existir
+    conn.execute("DROP TABLE IF EXISTS dengue.dengue_pe_fat")
+        
+    conn.execute("CREATE TABLE dengue.dengue_pe_fat AS SELECT * FROM cinan_df")
 
     # Fecha a conexão
     conn.close()

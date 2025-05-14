@@ -62,8 +62,8 @@ def dimensoes(conn):
     conn.register("dim_municipios", dim_municipios)
     conn.register("dim_ufs", dim_ufs)
 
-    conn.execute("CREATE OR REPLACE TABLE dim_raca AS SELECT * FROM dim_raca")
-    conn.execute("CREATE OR REPLACE TABLE dim_gestante AS SELECT * FROM dim_gestante")
-    conn.execute("CREATE OR REPLACE TABLE dim_escolaridade AS SELECT * FROM dim_escolaridade")
-    conn.execute("CREATE OR REPLACE TABLE dim_municipios AS SELECT * FROM dim_municipios")
-    conn.execute("CREATE OR REPLACE TABLE dim_ufs AS SELECT * FROM dim_ufs")
+    conn.execute("CREATE OR REPLACE TABLE dengue.dim_raca AS SELECT * FROM dim_raca")
+    conn.execute("CREATE OR REPLACE TABLE dengue.dim_gestante AS SELECT * FROM dim_gestante")
+    conn.execute("CREATE OR REPLACE TABLE dengue.dim_escolaridade AS SELECT * FROM dim_escolaridade")
+    conn.execute("CREATE OR REPLACE TABLE dengue.dim_municipios AS SELECT * FROM dim_municipios")
+    conn.execute("CREATE OR REPLACE TABLE dengue.dim_ufs AS SELECT * FROM dim_ufs")
