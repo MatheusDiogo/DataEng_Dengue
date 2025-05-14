@@ -16,6 +16,8 @@ def verificar_atualizacao(url = 'https://opendatasus.saude.gov.br/dataset/arbovi
 
     data_atual_site = None
 
+    # Parsear pelo site para encontrar a data de atualização
+    # A data de atualização está na linha que contém "Dados atualizados pela última vez. A TAG foi encontrada verificando o HTML do site"
     for linha in linhas:
         th = linha.find("th")
         if th and "Dados atualizados pela última vez" in th.get_text():
@@ -24,6 +26,7 @@ def verificar_atualizacao(url = 'https://opendatasus.saude.gov.br/dataset/arbovi
                 data_atual_site = td.get_text(strip=True)
             break
 
+    # Verificar se a data foi encontrada. Se não for encontrada, enviar um email e levantar uma exceção para o responsável verificar se houve mudança no site
     if data_atual_site is None:
         enviar_email("Não foi possível encontrar a data de atualização no site. Favor verificar no Site se houve alguma mudança!", "matheusdiogoeng@gmail.com") #E Email deveria ser colocado em uma variável de ambiente para não expor no github, também seria necessário criar a lista de emails em cópia
         raise ValueError("Não foi possível encontrar a data de atualização no site.")

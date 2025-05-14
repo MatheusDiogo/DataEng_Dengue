@@ -27,8 +27,18 @@ def extrair_dados():
                     colunas_com_tipos_mistos = [21,22,44,45,46,50,52,54,56,62,74,85,101]
                     dtype_dict = {col: 'str' for col in colunas_com_tipos_mistos}
 
+                    # Lê o CSV em pedaços para evitar problemas de memória
                     chunks = pd.read_csv(csv_file, sep=',', encoding='latin1', dtype=dtype_dict, chunksize=50000)
-                    df_pe = pd.concat([chunk[chunk['SG_UF_NOT'] == 26] for chunk in chunks])
+                    
+                    # Filtrando somente os dados de Pernambuco (PE) - Notificações, residência do paciênte e local de provavel infecção
+                    df_pe = pd.concat([
+                        chunk[
+                            (chunk['SG_UF_NOT'].astype(str) == '26') | 
+                            (chunk['UF'].astype(str) == '26') | 
+                            (chunk['COUFINF'].astype(str) == '26')
+                        ]
+                        for chunk in chunks
+                    ])
 
             # Cria uma conexão com o DuckDB e cria a tabela
             conn = duckdb.connect('/opt/airflow/data/dados_sinan.db')
