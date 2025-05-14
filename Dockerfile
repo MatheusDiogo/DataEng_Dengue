@@ -6,10 +6,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY dags /opt/airflow/dags
-COPY functions /opt/airflow/functions
 
-RUN mkdir -p /opt/airflow/output
-VOLUME /opt/airflow/output
+RUN mkdir -p /opt/airflow/data
+VOLUME /opt/airflow/data
 
 EXPOSE 8080
 

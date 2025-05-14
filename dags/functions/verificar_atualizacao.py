@@ -1,13 +1,13 @@
 import requests
 from bs4 import BeautifulSoup
 import os
-from enviar_email import enviar_email
+from functions.enviar_email import enviar_email
 
 def verificar_atualizacao(url = 'https://opendatasus.saude.gov.br/dataset/arboviroses-dengue/resource/5c9132a9-77c2-4b15-8afc-a43c58fc9ec0'):
     # Requisição HTTP
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    arquivo_data='/opt/airflow/output/ultima_data.txt'
+    arquivo_data='/opt/airflow/data/ultima_data.txt'
 
     soup = BeautifulSoup(response.content, "html.parser")
 

@@ -10,13 +10,7 @@ services:
       _AIRFLOW_WWW_USER_PASSWORD: airflow
     volumes:
       - ./dags:/opt/airflow/dags
-      - ./output:/opt/airflow/output
+      - ./data:/opt/airflow/data
     ports:
       - "8080:8080"
     command: ["airflow", "standalone"]
-#     networks:
-#       - airflow-net
-
-# networks:
-#   airflow-net:
-#     driver: bridge
