@@ -70,12 +70,15 @@ flowchart TD
     Compose["docker-compose.yaml"]:::container
     Dockerfile -->|Cria imagem| Airflow
     Compose -->|Orquestra serviços e volumes| Airflow
+
+    SQLiteDB["SQLite: dados_sinan.db"]:::data --> |Alimenta| Aplicações:::notify
 ```
 
 ## 💽 Tecnologias utilizadas
 
 - **Apache Airflow** para orquestração de tarefas  
-- **Python** para scripts de extração, transformação e carga  
+- **Python** para scripts de extração, transformação e carga
+- **DuckDB** para conexão e desenvolvimento em banco
 - **SQLite** como banco de dados local para persistência  
 - **Docker** e **Docker Compose** para containerização do ambiente  
 
@@ -101,10 +104,13 @@ flowchart TD
     Senha: airflow
 
 ## 🛠️ Dica para testar a extração novamente
-Se quiser ver a extração de dados acontecendo novamente, você pode forçar isso excluindo o arquivo ultima_data.txt, que está localizado na pasta **data/ultima_data.txt**
+Se quiser ver a extração de dados acontecendo novamente, você pode forçar isso excluindo o arquivo [**ultima_data.txt**](https://github.com/MatheusDiogo/DataEng_Dengue/blob/main/data/ultima_data.txt).
+
 Esse arquivo armazena a última data de extração realizada no site do SINAN. Ao removê-lo, o DAG (quando iniciar) irá considerar que uma nova extração precisa ser feita.
 
 ## 🔍 Consultas SQL
+As consultas solicitadas foram realizadas no notebook [**consultas.ipynb**](https://github.com/MatheusDiogo/DataEng_Dengue/blob/main/consultas.ipynb) através de uma conexão realizada utilizando **DuckDB** com o banco SQLite criado.
+
 # 1. Casos com Comorbidades Graves
 - **Objetivo:**
 Identificar pacientes com hospitalização, comorbidades (diabetes, hipertensão, hepatopatias) ou sinais de gravidade, possibilitando o monitoramento de populações vulneráveis e demanda por leitos hospitalares.
