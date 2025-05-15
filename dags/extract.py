@@ -1,44 +1,43 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
-import requests
 import duckdb
 import zipfile
-import io
-import pandas as pd
+import os
 import numpy as np
 from functions.verificar_atualizacao import verificar_atualizacao
 from functions.dimensoes import dimensoes
+from functions.download_arquivo import download_arquivo
 
 def extrair_dados():
     if verificar_atualizacao():
         url = 'https://arquivosdadosabertos.saude.gov.br/ftp/SINAN/Dengue/csv/DENGBR25.csv.zip'
+        caminho_zip = '/opt/airflow/data/DENGBR25.csv.zip'
 
-        # Faz o download com stream
-        response = requests.get(url, stream=True)
+        # Baixa o arquivo direto para o disco, sem carregar na memória
+        download_arquivo(url, caminho_zip)
 
-        # Verifica se o download foi bem-sucedido
-        if response.status_code == 200:
-            zip_bytes = io.BytesIO(response.content)
-            with zipfile.ZipFile(zip_bytes) as zip_file:
-                csv_name = zip_file.namelist()[0]
-                with zip_file.open(csv_name) as csv_file:
-                    # Algumas colunas têm tipos mistos, então vamos forçar o tipo delas para string
-                    # Lê o CSV em pedaços para evitar problemas de memória
-                    chunks = pd.read_csv(csv_file, sep=',', encoding='latin1', dtype=str, chunksize=50000)
-                    
-                    # Filtrando somente os dados de Pernambuco (PE) - Notificações, residência do paciênte e local de provavel infecção
-                    df_pe = pd.concat([
-                        chunk[
-                            (chunk['SG_UF_NOT'].astype(str) == '26') | 
-                            (chunk['UF'].astype(str) == '26') | 
-                            (chunk['COUFINF'].astype(str) == '26')
-                        ]
-                        for chunk in chunks
-                    ])
+        print("Dados baixados no disco com Sucesso!")
 
-            # Cria uma conexão com o DuckDB e cria a tabela
+        with zipfile.ZipFile(caminho_zip, 'r') as zip_file:
+            csv_interno = zip_file.namelist()[0]
+            caminho_csv_extraido = os.path.join('/opt/airflow/data', csv_interno)
+            zip_file.extract(csv_interno, path='/opt/airflow/data')
+            
+            query = f"""
+                SELECT *
+                FROM read_csv_auto('{caminho_csv_extraido}', delim=',', header=True, encoding='latin-1')
+                WHERE SG_UF_NOT = '26' OR UF = '26' OR COUFINF = '26'
+            """
+            # Usar o DuckDB para ler do arquivo no disco
             conn = duckdb.connect('/opt/airflow/data/dados_sinan.db')
+
+            df_pe = conn.execute(query).fetchdf()
+
+            # Salvar como parquet (Boa ideia para suubir em um lake)
+            #df_pe.to_parquet('/opt/airflow/data/dengue_PE.parquet')
+
+            # Cria o SCHEMA das tabelas
             conn.execute("CREATE SCHEMA IF NOT EXISTS dengue") # Cria o schema dengue se não existir. Dessa forma, pode-se criar tabelas de outros estados no mesmo schema (Mais otimizado)
 
             # Registra o DataFrame como uma tabela temporária
@@ -55,8 +54,13 @@ def extrair_dados():
             # Fecha a conexão
             conn.close()
 
-        else:
-            raise Exception(f"Erro ao acessar API: {response.status_code}")
+        # Apaga os arquivos para liberar espaço
+        try:
+            os.remove(caminho_zip)
+            os.remove(caminho_csv_extraido)
+            print("Arquivos temporários removidos com sucesso.")
+        except Exception as e:
+            print(f"Erro ao remover arquivos temporários: {e}")    
 
 def transformar_dados():
     print("Iniciando transformação")
